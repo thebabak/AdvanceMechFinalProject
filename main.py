@@ -6,7 +6,7 @@ from scipy.optimize import differential_evolution, NonlinearConstraint
 # Initialize storage for plotting
 best_fitness = []
 
-def objF1(X):
+def F1(X):
     # Beam properties
     rho_b = 1190  
     E_b = 3.1028e9  
@@ -66,12 +66,12 @@ patch_constraint = NonlinearConstraint(
 
 # Callback function
 def callback(xk, convergence):
-    best_fitness.append(objF1(xk))
+    best_fitness.append(F1(xk))
     return False
 
 # Run optimization
 result = differential_evolution(
-    objF1,
+    F1,
     bounds=[(0, 0.5), (0, 0.5)],
     constraints=patch_constraint,
     callback=callback,
@@ -96,7 +96,7 @@ plt.yscale('log')
 plt.subplot(1, 2, 2)
 plt.plot([0, 0.5], [0, 0], 'k-', linewidth=10, label='Beam')
 plt.plot(result.x, [0, 0], 'r-', linewidth=12, alpha=0.6,
-         label=f'Piezo Patch\nX1={result.x[0]:.3f}m\nX2={result.x[1]:.3f}m')
+        label=f'Piezo Patch\nX1={result.x[0]:.3f}m\nX2={result.x[1]:.3f}m')
 plt.title('Optimal Placement')
 plt.xlabel('Position (m)')
 plt.yticks([])
