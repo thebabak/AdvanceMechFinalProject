@@ -33,8 +33,8 @@ def objF1(X):
     # Mode shape derivatives
     sqrt_term = np.sqrt(2/(rho_b * L_b * A_b))
     U_diff = [sqrt_term * (i*np.pi/L_b) * 
-             (np.cos(i*np.pi*X[1]/L_b) - np.cos(i*np.pi*X[0]/L_b)) 
-             for i in range(1,5)]
+            (np.cos(i*np.pi*X[1]/L_b) - np.cos(i*np.pi*X[0]/L_b)) 
+            for i in range(1,5)]
 
     # Actuation and sensing vectors
     B_ = Ka * np.array(U_diff).reshape(-1, 1)
