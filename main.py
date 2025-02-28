@@ -8,19 +8,22 @@ best_fitness = []
 
 def F1(X):
     # Beam properties
-    rho_b = 1190  
-    E_b = 3.1028e9  
+    rho_b = 2710  
+    E_b = 3.71  
     t_b = 1.6e-3  
     L_b = 0.5  
     b = 0.01  
     J_b = b * t_b**3 / 12  
     A_b = b * t_b  
     zeta = np.diag([0.01]*4)  
-
+    v_b = 0.3
     # Piezoelectric patch properties
-    d31 = 2.3e-11  
-    h31 = 4.32e8  
-    t = 4e-5  
+    rho = 1800; % density, kg/^3
+    E = 2e9; % young's modulus, Pa
+    d31 = 2.3e-11; %piezoelectric constant, m/V
+    h31 = 4.32e8; %piezoelectric constant, V/m
+    v = 0.3; % poisson's ratio, dimensionless
+    t = 4e-5; % thickness, m  
 
     # Derived constants
     Ka = b * ((t_b + t)/2) * d31 * E_b
