@@ -3,10 +3,6 @@ import matplotlib.pyplot as plt
 from scipy.linalg import solve_continuous_are
 from scipy.integrate import solve_ivp
 import random
-import tkinter as tk
-from tkinter import simpledialog
-from F4 import plot_time_response, plot_displacement, plot_frequency_response, plot_amplitude_response
-
 
 # Beam and Piezoelectric Material Properties
 beam_length = 0.5  # in meters
@@ -53,6 +49,7 @@ A = np.block([
 B = np.zeros((state_size, 1))  # Input matrix
 B[num_elements - 1, 0] = 1  # Input applied at the last velocity state
 
+
 # Compute K2 Matrix (Piezoelectric Coupling)
 def compute_K2(positions):
     """
@@ -63,6 +60,7 @@ def compute_K2(positions):
         K2[pos, i] = 1.0  # Simplified coupling (real implementation is mode-specific)
     return K2
 
+
 # Cost Function for GA
 def cost_function(positions, K2, A, B):
     """
@@ -71,34 +69,28 @@ def cost_function(positions, K2, A, B):
     P = solve_continuous_are(A, B, Q, R)
     return np.trace(P)
 
+
 # Genetic Algorithm Optimization
-def genetic_algorithm(A, B, num_piezo):
+def genetic_algorithm(A, B):
     """
     Optimize the placement of piezoelectric patches using a genetic algorithm.
     """
     def generate_population():
-        # Generate a population of individuals with `num_piezo` actuator positions
-        return [sorted(random.sample(range(num_elements), num_piezo)) for _ in range(population_size)]
+        return [sorted(random.sample(range(num_elements), 4)) for _ in range(population_size)]
 
     def crossover(parent1, parent2):
-        # Perform crossover between two parents
         point = random.randint(1, len(parent1) - 1)
-        child1 = sorted(parent1[:point] + parent2[point:])
-        child2 = sorted(parent2[:point] + parent1[point:])
+        child1 = parent1[:point] + parent2[point:]
+        child2 = parent2[:point] + parent1[point:]
         return child1, child2
 
     def mutate(individual):
-        # Mutate a single actuator position randomly
         if random.random() < mutation_prob:
             idx = random.randint(0, len(individual) - 1)
             individual[idx] = random.randint(0, num_elements - 1)
-            individual = sorted(set(individual))  # Ensure uniqueness and order
-            while len(individual) < num_piezo:  # Ensure `num_piezo` actuators are always present
-                individual.append(random.randint(0, num_elements - 1))
-                individual = sorted(set(individual))
+            individual.sort()
         return individual
 
-    # Initialize population
     population = generate_population()
     best_solution = None
     best_cost = float('inf')
@@ -116,8 +108,8 @@ def genetic_algorithm(A, B, num_piezo):
 
         # Crossover
         for i in range(0, len(population), 2):
-            if random.random() < crossover_prob and i + 1 < len(population):
-                child1, child2 = crossover(population[i], population[i + 1])
+            if random.random() < crossover_prob:
+                child1, child2 = crossover(population[i], population[i+1])
                 population.append(child1)
                 population.append(child2)
 
@@ -133,6 +125,7 @@ def genetic_algorithm(A, B, num_piezo):
         print(f"Generation {generation + 1}, Best Cost: {best_cost}")
 
     return best_solution
+
 
 # Simulate Beam Dynamics with LQR Control
 def simulate_beam(control_type="LQR", control_gain=None):
@@ -150,55 +143,23 @@ def simulate_beam(control_type="LQR", control_gain=None):
     sol = solve_ivp(system_dynamics, t_span, initial_state, t_eval=t_eval)
     return sol.t, sol.y
 
-# Visualize Piezoelectric Actuator Placement
-def visualize_piezoelectric_positions(positions):
-    """
-    Visualize the positions of the piezoelectric actuators on the beam.
-    """
-    plt.figure(figsize=(10, 2))
-    plt.plot([0, beam_length], [0, 0], 'k-', linewidth=3, label='Beam')  # Beam as a black line
-    for pos in positions:
-        x = (pos / num_elements) * beam_length  # Map element index to beam length
-        plt.plot([x, x], [-0.05, 0.05], 'r-', linewidth=5, label='Piezoelectric Patch' if pos == positions[0] else "")
-    plt.title("Piezoelectric Actuator Placement on Beam")
-    plt.xlabel("Beam Length (m)")
-    plt.ylabel("Actuator Placement")
-    plt.legend()
-    plt.grid()
-    plt.show()
 
 # Main Execution
 if __name__ == "__main__":
-    # Step 1: Create a popup to ask the user for the number of piezoelectric actuators
-    root = tk.Tk()
-    root.withdraw()  # Hide the main tkinter window
-    num_piezo = simpledialog.askinteger("Input", "Enter the number of piezoelectric actuators:")
-    if not num_piezo:
-        print("No input provided. Exiting program.")
-        exit()
-
-    # Step 2: Optimize Piezoelectric Placement
-    optimal_positions = genetic_algorithm(A, B, num_piezo)
+    # Step 1: Optimize Piezoelectric Placement
+    optimal_positions = genetic_algorithm(A, B)
     print("Optimal Piezoelectric Positions:", optimal_positions)
 
-    # Step 3: Visualize Piezoelectric Placement
-    visualize_piezoelectric_positions(optimal_positions)
-    plot_time_response()
-
-    plot_displacement()
-
-    # Step 4: Simulate Beam Dynamics
+    # Step 2: Simulate Beam Dynamics
     K2 = compute_K2(optimal_positions)
     P = solve_continuous_are(A, B, Q, R)
     control_gain = np.dot(np.linalg.inv(R), np.dot(B.T, P))
     t, response = simulate_beam(control_type="LQR", control_gain=control_gain)
 
-    # Step 5: Plot Vibration Response
+    # Step 3: Plot Results
     plt.plot(t, response[0, :])
     plt.title("Beam Vibration Response with LQR Control")
     plt.xlabel("Time (s)")
     plt.ylabel("Displacement (m)")
     plt.grid()
     plt.show()
-    plot_frequency_response()
-    plot_amplitude_response()

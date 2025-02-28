@@ -4,23 +4,24 @@ from scipy.linalg import solve_continuous_lyapunov
 from scipy.signal import StateSpace, lsim
 
 def F3(X):
-    # Beam properties
-    rho_b = 1190  # density, kg/m^3
-    E_b = 3.1028e9  # young's modulus, Pa
-    v_b = 0.3  # poisson's ratio, dimensionless
-    t_b = 1.6e-3  # thickness, m
-    L_b = 0.5  # length, m
-    b = 0.01  # width, m
-    J_b = b * t_b**3 / 12  # Area Moment of Inertia
-    A_b = b * t_b  # cross-sectional area of the beam
-    zeta = np.diag([0.01, 0.01, 0.01, 0.01])  # damping ratio, dimensionless
+     # Beam properties
+    rho_b = 2710
+    E_b = 71e9
+    v_b = 0.3
+    t_b = 5e-4
+    L_b = 0.5
+    b = 0.01
+    J_b = b * t_b**3 / 12  # Corrected exponentiation
+    A_b = b * t_b
+    zeta = np.diag([0.01] * 4)  # Damping coefficients
 
     # Piezoelectric patch properties
-    rho = 1800  # density, kg/m^3
-    E = 2e9  # young's modulus, Pa
-    d31 = 2.3e-11  # piezoelectric constant, m/V
-    h31 = 4.32e8  # piezoelectric constant, V/m
-    t = 4e-5  # thickness, m
+    rho = 7500
+    E = 126e9
+    d31 = 2.3e-11
+    h31 = 4.32e8
+    v = 0.3
+    t = 1e-4
 
     # Derived constants
     Ka = b * ((t_b + t) / 2) * d31 * E

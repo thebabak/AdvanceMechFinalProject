@@ -8,23 +8,27 @@ convergence_data = []
 
 def objective_function(X):
     # Beam properties
-    rho_b = 1190         # Density, kg/m³
-    E_b = 3.1028e9       # Young's modulus, Pa
-    t_b = 1.6e-3         # Thickness, m
-    L_b = 0.5            # Length, m
-    b = 0.01             # Width, m
-    J_b = b * t_b**3 / 12  # Area moment of inertia
-    A_b = b * t_b        # Cross-sectional area
-    zeta = np.diag([0.01]*4)  # Damping ratios
+    rho_b = 2710
+    E_b = 71e9
+    v_b = 0.3
+    t_b = 5e-4
+    L_b = 0.5
+    b = 0.01
+    J_b = b * t_b**3 / 12  
+    A_b = b * t_b
+    zeta = np.diag([0.01] * 4)  # Damping coefficients
 
-    # Piezoelectric properties
-    d31 = 2.3e-11        # Piezoelectric constant, m/V
-    h31 = 4.32e8         # Piezoelectric constant, V/m
-    t_p = 4e-5           # Thickness, m
+    # Piezoelectric patch properties
+    rho = 7500
+    E = 126e9
+    d31 = 2.3e-11
+    h31 = 4.32e8
+    v = 0.3
+    t = 1e-4      # Thickness, m
 
     # Derived constants
-    Ka = b * ((t_b + t_p)/2) * d31 * E_b
-    Ks1 = -t_p * h31 * ((t_b + t_p)/2) / (X[1] - X[0])
+    Ka = b * ((t_b + t)/2) * d31 * E_b
+    Ks1 = -t * h31 * ((t_b + t)/2) / (X[1] - X[0])
 
     # Natural frequency matrix
     w_j = (np.pi/L_b)**2 * np.sqrt(E_b*J_b/(rho_b*A_b))
@@ -78,7 +82,7 @@ def optimization_callback(xk, convergence):
 # Run optimization
 result = differential_evolution(
     objective_function,
-    bounds=[(0, 0.5), (0, 0.5)],
+    bounds=[(0, 0.4), (0.1, 0.5)],  # Adjusted bounds
     constraints=patch_constraint,
     callback=optimization_callback,
     popsize=15,

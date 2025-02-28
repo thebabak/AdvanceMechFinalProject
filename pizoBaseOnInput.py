@@ -1,8 +1,13 @@
 import numpy as np
 from scipy.linalg import solve_continuous_lyapunov
 import matplotlib.pyplot as plt
+from tkinter import Tk, simpledialog
 
 def user_defined_piezo():
+    # Initialize Tkinter
+    root = Tk()
+    root.withdraw()  # Hide the main tkinter window
+
     # Beam properties
     rho_b = 2710  # density, kg/m^3
     E_b = 71e9  # Young's modulus, Pa
@@ -21,25 +26,27 @@ def user_defined_piezo():
     h31 = 1.5e-8  # Piezoelectric constant, V/m
     t = 4e-5  # thickness, m
 
-    # User input: number of patches
-    num_patches = int(input('Enter the number of piezoelectric patches: '))
-    if num_patches < 1:
+    # Ask user for number of patches
+    num_patches = simpledialog.askinteger("Input", "Enter the number of piezoelectric patches (at least 1):")
+    if num_patches is None or num_patches < 1:
         print('The number of patches must be at least 1.')
         return
 
-    # User input: positions of patches
+    # Ask user for the positions of the patches
     positions = np.zeros(2 * num_patches)  # Each patch has start and end positions
     for i in range(num_patches):
-        print(f'Enter the start and end positions of patch {i + 1} (in meters, between 0 and {L_b}):')
         while True:
-            start = float(input(f'  Start position of patch {i + 1}: '))
-            end = float(input(f'  End position of patch {i + 1}: '))
+            start = simpledialog.askfloat("Input", f"Enter the start position of patch {i + 1} (in meters, between 0 and {L_b}):")
+            end = simpledialog.askfloat("Input", f"Enter the end position of patch {i + 1} (in meters, between 0 and {L_b}):")
+            if start is None or end is None:
+                print("No input provided. Exiting.")
+                return
             if 0 <= start < end <= L_b:
                 positions[2 * i] = start
                 positions[2 * i + 1] = end
                 break
             else:
-                print('Invalid positions. Ensure the start is less than the end and within the beam length.')
+                simpledialog.messagebox.showerror("Error", "Invalid positions. Ensure the start is less than the end and within the beam length.")
 
     # Derived constants
     Ka = b * ((t_b + t) / 2) * d31 * E
@@ -106,7 +113,7 @@ def user_defined_piezo():
     plt.xticks(patches, [f'Patch {i + 1}' for i in range(num_patches)])
     plt.grid(True)
 
-    # Plot time-domain response (displacement for first mode)
+    # Plot response (mode energy contributions)
     plt.subplot(2, 1, 2)
     plt.plot(np.arange(1, 5), response[:4], 'o-', linewidth=2, label='Mode Response')
     plt.title('System Response (Mode Energy Contributions)')
